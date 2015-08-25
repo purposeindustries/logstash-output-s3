@@ -343,7 +343,7 @@ class LogStash::Outputs::S3 < LogStash::Outputs::Base
   public
 
   def rotate_events_log(prefix)
-    return @tempfile[prefix].size > @size_file
+    return @tempfile[prefix].to_io.size > @size_file
   end
 
   public
