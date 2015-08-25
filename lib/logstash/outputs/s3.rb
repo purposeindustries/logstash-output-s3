@@ -408,7 +408,11 @@ class LogStash::Outputs::S3 < LogStash::Outputs::Base
         next_page(actualprefix)
         create_temporary_file(actualprefix)
       else
-        @logger.debug("S3: tempfile file size report.", :tempfile_size => @tempfile[actualprefix].size, :size_file => @size_file)
+        if @encoding == "gzip"
+          @logger.debug("S3: tempfile file size report.", :tempfile_size => @tempfile[actualprefix].to_io.size, :size_file => @size_file)
+        else
+          @logger.debug("S3: tempfile file size report.", :tempfile_size => @tempfile[actualprefix].size, :size_file => @size_file)
+        end
       end
     end
 
