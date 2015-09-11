@@ -342,7 +342,7 @@ class LogStash::Outputs::S3 < LogStash::Outputs::Base
 
   public
   def rotate_events_log(prefix)
-    @file_rotation_lock.synchronize do
+    @file_rotation_lock[prefix].synchronize do
       return @tempfile[prefix].to_io.size > @size_file
     end
   end
