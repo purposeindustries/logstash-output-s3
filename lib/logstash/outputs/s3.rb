@@ -341,9 +341,10 @@ class LogStash::Outputs::S3 < LogStash::Outputs::Base
   end
 
   public
-
-  def rotate_events_log(prefix)
-    return @tempfile[prefix].to_io.size > @size_file
+  def rotate_events_log?(prefix)
+    @file_rotation_lock.synchronize do
+      return @tempfile[prefix].to_io.size > @size_file
+    end
   end
 
   public
@@ -375,10 +376,11 @@ class LogStash::Outputs::S3 < LogStash::Outputs::Base
     shutdown_upload_workers
     @periodic_rotation_thread.stop! if @periodic_rotation_thread
 
-    for prefix in @prefixes
-       @tempfile[prefix].close
+    @file_rotation_lock.synchronize do
+      for prefix in @prefixes
+         @tempfile[prefix].close unless @tempfile.nil? && @tempfile[prefix].closed?
+      end
     end
-
     finished
   end
 
