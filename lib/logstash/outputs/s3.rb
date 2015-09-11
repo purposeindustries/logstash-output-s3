@@ -402,11 +402,19 @@ class LogStash::Outputs::S3 < LogStash::Outputs::Base
     if write_events_to_multiple_files?
 
       if rotate_events_log(actualprefix)
-        @logger.debug("S3: tempfile is too large, let's bucket it and create new file", :tempfile => File.basename(@tempfile[actualprefix]))
+        if @encoding == "gzip"
+          @logger.debug("S3: tempfile is too large, let's bucket it and create new file", :tempfile => File.basename(@tempfile[actualprefix].path))
 
-        move_file_to_bucket_async(@tempfile[actualprefix].path)
-        next_page(actualprefix)
-        create_temporary_file(actualprefix)
+          move_file_to_bucket_async(@tempfile[actualprefix].path)
+          next_page(actualprefix)
+          create_temporary_file(actualprefix)
+        else
+          @logger.debug("S3: tempfile is too large, let's bucket it and create new file", :tempfile => File.basename(@tempfile[actualprefix]))
+
+          move_file_to_bucket_async(@tempfile[actualprefix])
+          next_page(actualprefix)
+          create_temporary_file(actualprefix)
+        end
       else
         if @encoding == "gzip"
           @logger.debug("S3: tempfile file size report.", :tempfile_size => @tempfile[actualprefix].to_io.size, :size_file => @size_file)
