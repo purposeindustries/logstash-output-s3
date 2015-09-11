@@ -375,10 +375,9 @@ class LogStash::Outputs::S3 < LogStash::Outputs::Base
   def teardown()
     shutdown_upload_workers
     @periodic_rotation_thread.stop! if @periodic_rotation_thread
-
-    @file_rotation_lock.synchronize do
-      for prefix in @prefixes
-         @tempfile[prefix].close unless @tempfile.nil? && @tempfile[prefix].closed?
+    for prefix in @prefixes
+      @file_rotation_lock[prefix].synchronize do
+         @tempfile[prefix].close unless @tempfile[prefix].nil? && @tempfile[prefix].closed?
       end
     end
     finished
